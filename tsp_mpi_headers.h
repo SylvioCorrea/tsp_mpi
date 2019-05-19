@@ -9,16 +9,33 @@
 
 //Defines the number of cities to be used in the problem
 #define N_OF_CS 14
-#define WORK	0
-#define RESULT	1
-#define DIE		2
-#define GRAIN	6
+
+//These define tags for mpi communication
+#define WORK	1
+#define RESULT	2
+#define DIE		3
+
+//Defines the amount of cities a slave will be required to perform permutations on
+#define GRAIN	12
 
 typedef struct {
     char *name;
     double x;
     double y;
 }City;
+
+/* Used for process comunication.
+   Master sends a partially filled city path that will
+   be used by a slave as basis for possible permutations
+   with the remaining cities. best_length holds the best
+   distance received by the master until now.
+   A slave will use the struct to send back the best
+   path found along with its length.
+   */
+typedef struct {
+    int path[N_OF_CS];
+    double best_length;
+}Message;
 
 
 void print_cities(City cities[]);

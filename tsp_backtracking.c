@@ -3,9 +3,74 @@
 
 //Compile using options:
 //  -lm to link math library
-//  -fopenmp to link openMP library
 
 //N_OF_CS and N_OF_THREADS are defined in the header
+
+/*
+  master_routine partially fills the city path then sends it to a slave so that it can
+  compute all possible permutations on top of it with the remaining cities. The slave
+  will send back a message containing the best permutation found for the partial path
+  given. The master then sends the next partial path for the slave to compute.
+  
+  Parameters:
+  message_ptr: pointer to the message struct used for sending. It holds the partial path on
+    top of which every slave is going to complete all possible permutations. Also holds
+    best path length found until now (this number should start at DBL_MAX).
+  available: array marking cities not yet in path.
+  best_path: holds best path found during computations.
+  burst: pointer. Should start at 1. Used to determine wether the first burst of jobs has
+    been sent. Incremented after every send until all slaves receive at least one job.
+*/
+void master_routine(Message *message_ptr, int available[], int best_path[],
+                    int path_size, int *burst) {
+    int i;
+    if(path_size < N_OF_CS - GRAIN) {
+        //Still building the partial path
+        for(i=0; i<N_OF_CS; i++) {
+            if(available[i]) {
+                //City not yet chosen. Add it to the path. Mark it as unavailable.
+                message->path[path_size] = i;
+                available[i] = 0;
+                //Go on with the recursion
+                master_routine(message_ptr, availablepath_size+1);
+                //Back from recursion. City is available again.
+                available[i] = 1;
+            } //Else we try the next city in the loop.
+        }
+        
+    } else {
+        //Time to forward the rest of the job for one of the slaves
+        if((*burst) < proc_n) {
+            //First burst of jobs is sent with no need for slave request.
+            MPI_Send(message_ptr, sizeof(Message), MPI_BYTE, (*burst), WORK, MPI_COMM_WORLD);
+            (*burst)++;
+        } else {
+            //All slaves received jobs already. Time to colect results
+            //before sending anything else.
+            Message results;
+            MPI_Status status;
+            MPI_Recv(&results, sizeof(Message), MPI_BYTE, MPI_ANY_SOURCE, RESULT, &status);
+            if(results.best_length < message_ptr->best_length) {
+                //A better path has been found.
+                //Save it's length.
+                message_ptr->best_length = results.best_length;
+                //Copy path.
+                for(i=0; i<N_OF_CS; i++) {
+                    best_path[i] = results.path[i];
+                }
+            } //Else ignore results received
+            
+            //Send new job to this slave
+            MPI_Send(message_ptr, sizeof(Message), MPI_BYTE, status.MPI_SOURCE, WORK, MPI_COMM_WORLD);
+        }
+    }
+}
+
+
+
+
+
+
 
 
 //This function solves the tsp problem. The caller can choose the starting city,
@@ -36,8 +101,6 @@ void tsp(double distance_m[N_OF_CS][N_OF_CS], int start) {
     }
     available[start] = 0; //The first city is already on the path
     
-    #pragma omp parallel firstprivate(i, path, available)
-    #pragma omp for schedule(dynamic)
     for(i=0; i<N_OF_CS; i++) {
         if(i != start) {
             path[1] = i;
@@ -70,7 +133,7 @@ void tsp(double distance_m[N_OF_CS][N_OF_CS], int start) {
 }
 
 
-
+//path
 void tsp_aux(int path[], int path_size, int available[],
              double distance_m[N_OF_CS-1][N_OF_CS],
              int best_path[], double *best_length) {
@@ -116,11 +179,21 @@ void tsp_aux(int path[], int path_size, int available[],
 
 int main() {
     
-    int my_rank;       // Process id
-	int proc_n;        // Number of processes (command line -np)
-	int message;       // Message buffer
-	MPI_Status status; // Status struct
-
+    int my_rank;                //Process id
+	int proc_n;                 //Number of processes (command line -np)
+	Message message;            //Message buffer (see header file)
+	int available[N_OF_CS];     //Tells which cities have yet to appear in a permutation
+	int best_path[N_OF_CS];
+	int i;
+	for(i=0; i<N_OF_CS; i++) {
+	    message.path[i] = -1;
+	    best_path[i] = -1;
+	    available[i] = 1;
+	}
+    message.best_length = DBL_MAX;
+	
+	MPI_Status status; //Status struct
+    
 	MPI_Init(&argc , &argv);
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
@@ -143,40 +216,73 @@ int main() {
 	cities[13].name = "n"; cities[13].x = 33; cities[13].y = 680;
 	//cities[14].name = "o"; cities[14].x = 672; cities[14].y = 415;
 	//print_cities(cities);
-	
+	//Creates and fills a distance table with distances between all cities
+    double distance_m[N_OF_CS][N_OF_CS];
+    fill_distance_m(distance_m, cities);
     
     
     if(my_rank == 0) {
     //================master======================
-    
+        //Computation starts defining city 0 as starting city
+        message.path[0] = 0;
+        //The city is marked as unavailable.
+		available[0] = 0;
+        int burst = 1;
+        master_routine(&message, available, best_path, 0, &burst);
+        
+        void master_routine(Message *message_ptr, available, int best_path[], int path_size,
+                    int *burst, MPI_Status *status_ptr) {
+
+        
     
 	
 	
 	
 	} else {
 	//================slave=======================
+		double best_length;
+		
 		while(1) {
-			MPI_Recv(&partial_path, GRAIN, 0, MPI_ANY_TAG, MPI_COMM_WORLD);
+		    MPI_Recv(&message, sizeof(Message), MPI_BYTE, 1, MPI_ANY_TAG, &status);
 			
-			if(MPI_ANY_TAG == WORK) {
+			if(status.MPI_TAG == WORK) { //Received a job
+				//Mark all unavailable cities
+				for(i=0; i<N_OF_CS-GRAIN; i++) {
+				    available[message.path[i]] = 0;
+				}
+				best_length = message.best_lenght;
+				
+				//Work on permutations
+				tsp_aux(message.path, N_OF_CS-GRAIN, available, distance_m,
+				        best_path, &best_length);
+				
+				for(i=0; i<N_OF_CS; i++) {
+				    //Copy best path to message
+				    message.path[i] = best_path[i];
+				    //Reset available for next job
+				    available[i] = 1;
+				}
+				//Copy best found length to message
+				message.best_length = best_length;
 				
 				
-				
-				
-				MPI_Send(&solution, )
-			} else {
-			
+				//Send results
+				MPI_Send(&message, sizeof(Message), MPI_BYTE, 0, 1, MPI_COMM_WORLD);
+			} else { //No more work to do
+			    break;
 			}
 		}
+    
+    
+    
     }
+    //================wrapping up=====================
     
 
     
     
     
-    //Creates and fills a distance table with distances between all cities
-    double distance_m[N_OF_CS][N_OF_CS];
-    fill_distance_m(distance_m, cities);
+    
     
     printf("Computing solution using %d threads\n", THREADS);
     double begin = omp_get_wtime();
