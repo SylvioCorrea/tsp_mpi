@@ -43,6 +43,7 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
         if((*burst) < PROC_N) {
             //First burst of jobs is sent with no need for slave request.
             MPI_Send(message_ptr, sizeof(Message), MPI_BYTE, (*burst), WORK, MPI_COMM_WORLD);
+            printf("job sent\n");
             (*burst)++;
         } else {
             //All slaves received jobs already. Time to colect results
@@ -271,9 +272,9 @@ int main(int argc, char **argv) {
 		
 		while(1) {
 		    MPI_Recv(&message, sizeof(Message), MPI_BYTE, 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-			
 			if(status.MPI_TAG == WORK) { //Received a job
-				//Mark all unavailable cities
+				printf("[%d]: job received\n", my_rank);
+                //Mark all unavailable cities
 				for(i=0; i<N_OF_CS-GRAIN; i++) {
 				    available[message.path[i]] = 0;
 				}
@@ -298,6 +299,7 @@ int main(int argc, char **argv) {
 				
 				//Send back
 				MPI_Send(&message, sizeof(Message), MPI_BYTE, 0, 1, MPI_COMM_WORLD);
+                printf("[%d]: results sent.\n", my_rank);
 			} else { //No more work to do
 			    break;
 			}
