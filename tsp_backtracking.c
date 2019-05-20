@@ -237,7 +237,7 @@ int main(int argc, char **argv) {
         //The city is marked as unavailable.
 		available[0] = 0;
         int burst = 1;
-        master_routine(&message, available, best_path, 0, &burst);
+        master_routine(&message, available, best_path, 1, &burst);
         
         //All work sent. Slaves are blocked on send with their last results.
         //Receive and send final message.
