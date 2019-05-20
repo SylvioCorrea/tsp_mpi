@@ -271,9 +271,10 @@ int main(int argc, char **argv) {
 		double best_length;
 		
 		while(1) {
-		    MPI_Recv(&message, sizeof(Message), MPI_BYTE, 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-			if(status.MPI_TAG == WORK) { //Received a job
-				printf("[%d]: job received\n", my_rank);
+		    MPI_Recv(&message, sizeof(Message), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+			printf("[%d]: job received\n", my_rank);
+            if(status.MPI_TAG == WORK) { //Received a job
+				
                 //Mark all unavailable cities
 				for(i=0; i<N_OF_CS-GRAIN; i++) {
 				    available[message.path[i]] = 0;
@@ -298,7 +299,7 @@ int main(int argc, char **argv) {
 				
 				
 				//Send back
-				MPI_Send(&message, sizeof(Message), MPI_BYTE, 0, 1, MPI_COMM_WORLD);
+				MPI_Send(&message, sizeof(Message), MPI_BYTE, 0, RESULT, MPI_COMM_WORLD);
                 printf("[%d]: results sent.\n", my_rank);
 			} else { //No more work to do
 			    break;
