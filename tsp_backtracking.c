@@ -277,7 +277,7 @@ int main(int argc, char **argv) {
 				for(i=0; i<N_OF_CS-GRAIN; i++) {
 				    available[message.path[i]] = 0;
 				}
-				best_length = message.best_lenght;
+				best_length = message.best_length;
 				
 				//Work on permutations
 				tsp_aux(message.path, N_OF_CS-GRAIN, available, distance_m,
