@@ -147,7 +147,7 @@ void tsp_aux(int path[], int path_size, int available[],
     //tree is finished. If this path is better than the previously recorded path,
     //it is saved along with its length.
     if(path_size == N_OF_CS) {
-        //printf("Checkpoint 2\n");
+        printf("Calculating path length.\n");
         double path_length = calc_length(path, distance_m);
         if(path_length < *best_length) {
             *best_length = path_length;
