@@ -50,7 +50,9 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
             //before sending anything else.
             Message results;
             MPI_Status status;
+            printf("Waiting results.\n");
             MPI_Recv(&results, sizeof(Message), MPI_BYTE, MPI_ANY_SOURCE, RESULT, MPI_COMM_WORLD, &status);
+            printf("Results received.\n");
             if(results.best_length < message_ptr->best_length) {
                 //A better path has been found.
                 //Save it's length.
@@ -65,6 +67,8 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
             MPI_Send(message_ptr, sizeof(Message), MPI_BYTE, status.MPI_SOURCE, WORK, MPI_COMM_WORLD);
         }
     }
+    
+    
 }
 
 
