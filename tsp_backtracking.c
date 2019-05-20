@@ -284,10 +284,7 @@ int main() {
     
     
     
-    printf("Computing solution using %d threads\n", THREADS);
-    double begin = omp_get_wtime();
-    tsp(distance_m, 0);
-    double end = omp_get_wtime();
+    printf("Computing solution using %d processes\n", proc_n);
     printf("Solution found in %.2f seconds\n", (end - begin));
     //test((double *)distance_m, 3, 5);
 }
