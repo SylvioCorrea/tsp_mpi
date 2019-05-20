@@ -9,6 +9,8 @@
 
 //Defines the number of cities to be used in the problem
 #define N_OF_CS 14
+//Defines number of processes (should match -np command line argument).
+#define PROC_N 14
 
 //These define tags for mpi communication
 #define WORK	1
