@@ -147,7 +147,7 @@ void tsp_aux(int path[], int path_size, int available[],
     //tree is finished. If this path is better than the previously recorded path,
     //it is saved along with its length.
     if(path_size == N_OF_CS) {
-        printf("Calculating path length.\n");
+        //printf("Calculating path length.\n");
         double path_length = calc_length(path, distance_m);
         if(path_length < *best_length) {
             *best_length = path_length;
@@ -245,6 +245,7 @@ int main(int argc, char **argv) {
         int done = 0;
         Message results;
         while(done<proc_n-1) {
+            
             MPI_Recv(&results, sizeof(Message), MPI_BYTE, MPI_ANY_SOURCE, RESULT, MPI_COMM_WORLD, &status);
             if(results.best_length < message.best_length) {
                 //A better path has been found.
@@ -294,7 +295,7 @@ int main(int argc, char **argv) {
 				//Work on permutations
 				tsp_aux(message.path, N_OF_CS-GRAIN, available, distance_m,
 				        best_path, &best_length);
-				
+				printf("[%d]permutations done\n", my_rank);
                 if(best_length<message.best_length) { //Found a better path
                     for(i=0; i<N_OF_CS; i++) {
                         //Copy best path to message
