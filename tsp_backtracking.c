@@ -49,7 +49,7 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
             //before sending anything else.
             Message results;
             MPI_Status status;
-            MPI_Recv(&results, sizeof(Message), MPI_BYTE, MPI_ANY_SOURCE, RESULT, &status);
+            MPI_Recv(&results, sizeof(Message), MPI_BYTE, MPI_ANY_SOURCE, RESULT, MPI_COMM_WORLD, &status);
             if(results.best_length < message_ptr->best_length) {
                 //A better path has been found.
                 //Save it's length.
@@ -178,7 +178,7 @@ void tsp_aux(int path[], int path_size, int available[],
 
 
 
-int main() {
+int main(int argc, char **argv) {
     
     int my_rank;                //Process id
     int proc_n;                 //Number of processes (command line -np)
@@ -240,7 +240,7 @@ int main() {
         int done = 0;
         Message results;
         while(done<proc_n-1) {
-            MPI_Recv(&results, sizeof(Message), MPI_BYTE, MPI_ANY_SOURCE, RESULT, &status);
+            MPI_Recv(&results, sizeof(Message), MPI_BYTE, MPI_ANY_SOURCE, RESULT, MPI_COMM_WORLD, &status);
             if(results.best_length < message.best_length) {
                 //A better path has been found.
                 //Save it's length.
@@ -270,7 +270,7 @@ int main() {
 		double best_length;
 		
 		while(1) {
-		    MPI_Recv(&message, sizeof(Message), MPI_BYTE, 1, MPI_ANY_TAG, &status);
+		    MPI_Recv(&message, sizeof(Message), MPI_BYTE, 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 			
 			if(status.MPI_TAG == WORK) { //Received a job
 				//Mark all unavailable cities
