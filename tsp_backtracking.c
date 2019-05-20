@@ -43,7 +43,7 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
         if((*burst) < PROC_N) {
             //First burst of jobs is sent with no need for slave request.
             MPI_Send(message_ptr, sizeof(Message), MPI_BYTE, (*burst), WORK, MPI_COMM_WORLD);
-            printf("job sent\n");
+            printf("job %d sent\n", *burst);
             (*burst)++;
         } else {
             //All slaves received jobs already. Time to colect results
@@ -284,6 +284,12 @@ int main(int argc, char **argv) {
 				    available[message.path[i]] = 0;
 				}
 				best_length = message.best_length;
+				
+				for(i=0; i<N_OF_CS; i++) {
+				    printf("%d ", message.path[i]);
+				}
+				printf("\n");
+				
 				
 				//Work on permutations
 				tsp_aux(message.path, N_OF_CS-GRAIN, available, distance_m,
