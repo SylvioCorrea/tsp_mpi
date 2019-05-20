@@ -29,10 +29,10 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
         for(i=0; i<N_OF_CS; i++) {
             if(available[i]) {
                 //City not yet chosen. Add it to the path. Mark it as unavailable.
-                message->path[path_size] = i;
+                message_ptr->path[path_size] = i;
                 available[i] = 0;
                 //Go on with the recursion
-                master_routine(message_ptr, availablepath_size+1);
+                master_routine(message_ptr, available, best_path, path_size+1, burst);
                 //Back from recursion. City is available again.
                 available[i] = 1;
             } //Else we try the next city in the loop.
@@ -40,7 +40,7 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
         
     } else {
         //Time to forward the rest of the job for one of the slaves
-        if((*burst) < proc_n) {
+        if((*burst) < PROC_N) {
             //First burst of jobs is sent with no need for slave request.
             MPI_Send(message_ptr, sizeof(Message), MPI_BYTE, (*burst), WORK, MPI_COMM_WORLD);
             (*burst)++;
