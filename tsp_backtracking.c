@@ -72,7 +72,7 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
 
 
 
-
+/*
 //This function solves the tsp problem. The caller can choose the starting city,
 //though it should be noted the sollution is a hamiltonian cycle and as such
 //the solution list should be considered a ring, that is, it can be used
@@ -131,6 +131,7 @@ void tsp(double distance_m[N_OF_CS][N_OF_CS], int start) {
     print_int_arr(best_paths[solution]);
     printf("Path length: %f\n", best_lengths[solution]);
 }
+*/
 
 
 //path
@@ -180,16 +181,16 @@ void tsp_aux(int path[], int path_size, int available[],
 int main() {
     
     int my_rank;                //Process id
-	int proc_n;                 //Number of processes (command line -np)
-	Message message;            //Message buffer (see header file)
-	int available[N_OF_CS];     //Tells which cities have yet to appear in a permutation
-	int best_path[N_OF_CS];
-	int i;
-	for(i=0; i<N_OF_CS; i++) {
-	    message.path[i] = -1;
-	    best_path[i] = -1;
-	    available[i] = 1;
-	}
+    int proc_n;                 //Number of processes (command line -np)
+    Message message;            //Message buffer (see header file)
+    int available[N_OF_CS];     //Tells which cities have yet to appear in a permutation
+    int best_path[N_OF_CS];
+    int i;
+    for(i=0; i<N_OF_CS; i++) {
+        message.path[i] = -1;
+        best_path[i] = -1;
+        available[i] = 1;
+    }
     message.best_length = DBL_MAX;
 	
 	MPI_Status status; //Status struct
@@ -223,6 +224,9 @@ int main() {
     
     if(my_rank == 0) {
     //================master======================
+        
+        printf("Computing solution using %d processes\n", proc_n);
+        
         //Computation starts defining city 0 as starting city
         message.path[0] = 0;
         //The city is marked as unavailable.
@@ -230,14 +234,37 @@ int main() {
         int burst = 1;
         master_routine(&message, available, best_path, 0, &burst);
         
-        void master_routine(Message *message_ptr, available, int best_path[], int path_size,
-                    int *burst, MPI_Status *status_ptr) {
-
+        //All work sent. Slaves are blocked on send with their last results.
+        //Receive and send final message.
+        printf("All work sent. Wrapping up.\n");
+        int done = 0;
+        Message results;
+        while(done<proc_n-1) {
+            MPI_Recv(&results, sizeof(Message), MPI_BYTE, MPI_ANY_SOURCE, RESULT, &status);
+            if(results.best_length < message.best_length) {
+                //A better path has been found.
+                //Save it's length.
+                message.best_length = results.best_length;
+                //Copy path.
+                for(i=0; i<N_OF_CS; i++) {
+                    best_path[i] = results.path[i];
+                }
+            } //Else ignore results received.
+            
+            //Send final message to this slave.
+            MPI_Send(&message, sizeof(Message), MPI_BYTE, status.MPI_SOURCE, DIE, MPI_COMM_WORLD);
+            done++;
+        }
         
-    
-	
-	
-	
+        //Print solution
+        printf("Best path: ");
+        for(i=0; i<N_OF_CS; i++) {
+            printf("%d ", best_path[i]);
+        }
+        printf("\nLength: %.2f\n", message.best_length);
+            
+        
+        
 	} else {
 	//================slave=======================
 		double best_length;
@@ -256,17 +283,20 @@ int main() {
 				tsp_aux(message.path, N_OF_CS-GRAIN, available, distance_m,
 				        best_path, &best_length);
 				
-				for(i=0; i<N_OF_CS; i++) {
-				    //Copy best path to message
-				    message.path[i] = best_path[i];
-				    //Reset available for next job
-				    available[i] = 1;
-				}
-				//Copy best found length to message
-				message.best_length = best_length;
+                if(best_length<message.best_length) { //Found a better path
+                    for(i=0; i<N_OF_CS; i++) {
+                        //Copy best path to message
+                        message.path[i] = best_path[i];
+                        //Reset available for next job
+                        available[i] = 1;
+                    }
+                    //Copy best found length to message
+                    message.best_length = best_length;
+                } //Else no relevant results to report, will send back the
+                  //same message it received.
 				
 				
-				//Send results
+				//Send back
 				MPI_Send(&message, sizeof(Message), MPI_BYTE, 0, 1, MPI_COMM_WORLD);
 			} else { //No more work to do
 			    break;
@@ -277,14 +307,5 @@ int main() {
     
     }
     //================wrapping up=====================
-    
-
-    
-    
-    
-    
-    
-    printf("Computing solution using %d processes\n", proc_n);
-    printf("Solution found in %.2f seconds\n", (end - begin));
-    //test((double *)distance_m, 3, 5);
+    MPI_Finalize();
 }
