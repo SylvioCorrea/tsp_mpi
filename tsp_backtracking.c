@@ -6,7 +6,6 @@ int proc_n; //Set by command line option -np
 //Compile using options:
 //  -lm to link math library
 
-//N_OF_CS and N_OF_THREADS are defined in the header
 
 /*
   master_routine partially fills the city path then sends it to a slave so that it can
@@ -75,73 +74,9 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
 
 
 
-
-
-
-
-/*
-//This function solves the tsp problem. The caller can choose the starting city,
-//though it should be noted the sollution is a hamiltonian cycle and as such
-//the solution list should be considered a ring, that is, it can be used
-//for any starting city.
-void tsp(double distance_m[N_OF_CS][N_OF_CS], int start) {
-    
-    int path[N_OF_CS]; //Stores current path of the computation
-    path[0] = start; //Puts the first city in the path
-    
-    //best_paths stores in it's rows the best paths found by each
-    //iteration of the loop below. It has one less row than the number of
-    //cities because the first city is already chosen at the start
-    //of the algorithm
-    int best_paths[N_OF_CS][N_OF_CS];
-    double best_lengths[N_OF_CS]; //Current best path length of each iteration
-    
-    int available[N_OF_CS]; //keeps track of cities not yet visited
-    
-    int i;
-    
-    
-    for(i=0; i<N_OF_CS; i++) {
-        best_paths[i][0] = start; //All paths in the iteration start in the same city
-        best_lengths[i] = DBL_MAX;
-        available[i] = 1; //Mark all cities as available (notice below)
-    }
-    available[start] = 0; //The first city is already on the path
-    
-    for(i=0; i<N_OF_CS; i++) {
-        if(i != start) {
-            path[1] = i;
-            available[i] = 0;
-            //2 is the current path size, since it contains the starting city and
-            //the current city in the iteration
-            tsp_aux(path, 2, available, distance_m, best_paths[i], &best_lengths[i]);
-            available[i] = 1;
-        }
-    }
-    
-    //Check which of the returned solutions is the best
-    double solution_length = best_lengths[0];
-    int solution = 0;
-    for(i=0; i<N_OF_CS; i++) { //We could start at i=1, but might as well print 0 too
-        if(i!=start) { 
-            printf("Solution %d: %f\n", i, best_lengths[i]);
-            print_int_arr(best_paths[i]);
-            if(best_lengths[i] < solution_length) {
-                solution_length = best_lengths[i];
-                solution = i;
-            }
-        }
-    }
-    
-    //Print solution
-    printf("Best path:");
-    print_int_arr(best_paths[solution]);
-    printf("Path length: %f\n", best_lengths[solution]);
-}
-*/
-
-
-//path
+//Function called by slaves to compute permutations using all cities not currently
+//in the path. Solutions that improve on best_length have their length take it's
+//place and their path saved on best_path.
 void tsp_aux(int path[], int path_size, int available[],
              double distance_m[N_OF_CS-1][N_OF_CS],
              int best_path[], double *best_length) {
@@ -297,12 +232,6 @@ int main(int argc, char **argv) {
 				    available[message.path[i]] = 0;
 				}
 				best_length = message.best_length;
-				
-				for(i=0; i<N_OF_CS; i++) {
-				    printf("%d ", message.path[i]);
-				}
-				printf("\n");
-				
 				
 				//Work on permutations
 				tsp_aux(message.path, N_OF_CS-GRAIN, available, distance_m,
