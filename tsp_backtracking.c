@@ -164,7 +164,8 @@ void tsp_aux(int path[], int path_size, int available[],
                 //Includes the new city in the current path
                 path[path_size] = i;
                 //Go on with the recursion. Notice the increment on path_size.
-                tsp_aux(path, path_size+1, available, distance_m, best_path, best_length);
+                tsp_aux(path, path_size+1, available, distance_m,
+                        best_path, best_length);
                 //At this point the above recursion is backtracking.
                 //Mark this city as available again before continuing on this loop,
                 //so that deeper levels of the recursion can utilize it.
@@ -185,12 +186,17 @@ void tsp_aux(int path[], int path_size, int available[],
 
 int main(int argc, char **argv) {
     
-    int my_rank;                //Process id
-    int proc_n;                 //Number of processes (command line -np)
-    Message message;            //Message buffer (see header file)
-    int available[N_OF_CS];     //Tells which cities have yet to appear in a permutation
+    int my_rank;             //Process id
+    int proc_n;              //Number of processes (command line -np)
+    Message message;         //Message buffer (see header file)
+    
+    //Tells which cities have yet to appear in a permutation.
+    int available[N_OF_CS];  
     int best_path[N_OF_CS];
     int i;
+    
+    //Fill paths with placeholder -1 value.
+    //Mark all cities as available.
     for(i=0; i<N_OF_CS; i++) {
         message.path[i] = -1;
         best_path[i] = -1;
@@ -250,7 +256,8 @@ int main(int argc, char **argv) {
         Message results;
         while(done<proc_n-1) {
             
-            MPI_Recv(&results, sizeof(Message), MPI_BYTE, MPI_ANY_SOURCE, RESULT, MPI_COMM_WORLD, &status);
+            MPI_Recv(&results, sizeof(Message), MPI_BYTE,
+                     MPI_ANY_SOURCE, RESULT, MPI_COMM_WORLD, &status);
             if(results.best_length < message.best_length) {
                 //A better path has been found.
                 //Save it's length.
@@ -262,7 +269,8 @@ int main(int argc, char **argv) {
             } //Else ignore results received.
             
             //Send final message to this slave.
-            MPI_Send(&message, sizeof(Message), MPI_BYTE, status.MPI_SOURCE, DIE, MPI_COMM_WORLD);
+            MPI_Send(&message, sizeof(Message), MPI_BYTE,
+                     status.MPI_SOURCE, DIE, MPI_COMM_WORLD);
             done++;
         }
         
@@ -273,7 +281,7 @@ int main(int argc, char **argv) {
             printf("%d ", best_path[i]);
         }
         printf("\nLength: %.2f\n", message.best_length);
-        printf("Time: %f", t2-t1);
+        printf("Time: %.2f seconds", t2-t1);
         
         
 	} else {
@@ -281,10 +289,10 @@ int main(int argc, char **argv) {
 		double best_length;
 		
 		while(1) {
-		    MPI_Recv(&message, sizeof(Message), MPI_BYTE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-			printf("[%d]: job received\n", my_rank);
+		    MPI_Recv(&message, sizeof(Message), MPI_BYTE, 0,
+		             MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             if(status.MPI_TAG == WORK) { //Received a job
-				
+				printf("[%d]: job received\n", my_rank);
                 //Mark all unavailable cities
 				for(i=0; i<N_OF_CS-GRAIN; i++) {
 				    available[message.path[i]] = 0;
@@ -315,7 +323,8 @@ int main(int argc, char **argv) {
 				
 				
 				//Send back
-				MPI_Send(&message, sizeof(Message), MPI_BYTE, 0, RESULT, MPI_COMM_WORLD);
+				MPI_Send(&message, sizeof(Message), MPI_BYTE,
+				         0, RESULT, MPI_COMM_WORLD);
                 printf("[%d]: results sent.\n", my_rank);
 			} else { //No more work to do
 			    printf("[%d]finished\n", my_rank);
