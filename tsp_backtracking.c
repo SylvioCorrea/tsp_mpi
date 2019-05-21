@@ -60,7 +60,7 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
                 //A better path has been found.
                 //Save it's length.
                 message_ptr->best_length = results.best_length;
-                printf("%.2f\n", message_ptr->best_length);
+                printf("*[M]: %.2f\n", message_ptr->best_length);
                 //Copy path.
                 for(i=0; i<N_OF_CS; i++) {
                     best_path[i] = results.path[i];
@@ -92,6 +92,7 @@ void tsp_aux(int path[], int path_size, int available[],
         double path_length = calc_length(path, distance_m);
         if(path_length < *best_length) {
             *best_length = path_length;
+            printf("[s]: %.2f\n", *best_length);
             copy_path(path, best_path);
         }
     } else {
