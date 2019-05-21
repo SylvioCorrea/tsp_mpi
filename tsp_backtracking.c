@@ -51,13 +51,14 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
             //before sending anything else.
             Message results;
             MPI_Status status;
-            printf("Waiting results.\n");
+            //printf("Waiting results.\n");
             MPI_Recv(&results, sizeof(Message), MPI_BYTE, MPI_ANY_SOURCE, RESULT, MPI_COMM_WORLD, &status);
-            printf("Results received.\n");
+            //printf("Results received.\n");
             if(results.best_length < message_ptr->best_length) {
                 //A better path has been found.
                 //Save it's length.
                 message_ptr->best_length = results.best_length;
+                printf("%.2f\n", message_ptr->best_length);
                 //Copy path.
                 for(i=0; i<N_OF_CS; i++) {
                     best_path[i] = results.path[i];
@@ -196,6 +197,7 @@ int main(int argc, char **argv) {
                 //A better path has been found.
                 //Save it's length.
                 message.best_length = results.best_length;
+                printf("final check: %.2f\n", message.best_length);
                 //Copy path.
                 for(i=0; i<N_OF_CS; i++) {
                     best_path[i] = results.path[i];
@@ -226,7 +228,7 @@ int main(int argc, char **argv) {
 		    MPI_Recv(&message, sizeof(Message), MPI_BYTE, 0,
 		             MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             if(status.MPI_TAG == WORK) { //Received a job
-				printf("[%d]: job received\n", my_rank);
+				//printf("[%d]: job received\n", my_rank);
                 //Mark all unavailable cities
 				for(i=0; i<N_OF_CS-GRAIN; i++) {
 				    available[message.path[i]] = 0;
@@ -236,7 +238,7 @@ int main(int argc, char **argv) {
 				//Work on permutations
 				tsp_aux(message.path, N_OF_CS-GRAIN, available, distance_m,
 				        best_path, &best_length);
-				printf("[%d]permutations done\n", my_rank);
+				//printf("[%d]permutations done\n", my_rank);
                 if(best_length<message.best_length) { //Found a better path
                     for(i=0; i<N_OF_CS; i++) {
                         //Copy best path to message
@@ -253,7 +255,7 @@ int main(int argc, char **argv) {
 				//Send back
 				MPI_Send(&message, sizeof(Message), MPI_BYTE,
 				         0, RESULT, MPI_COMM_WORLD);
-                printf("[%d]: results sent.\n", my_rank);
+                //printf("[%d]: results sent.\n", my_rank);
 			} else { //No more work to do
 			    printf("[%d]finished\n", my_rank);
 			    break;
