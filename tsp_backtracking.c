@@ -245,6 +245,13 @@ int main(int argc, char **argv) {
 				tsp_aux(message.path, N_OF_CS-GRAIN, available, distance_m,
 				        best_path, &best_length);
 				//printf("[%d]permutations done\n", my_rank);
+				
+				//Cities already on the path were not marked as available again
+				//during tsp_aux recursion. This must be corrected here.
+				for(i=0; i<N_OF_CS; i++) {
+				    available[i] = 1;
+				}
+				
                 if(best_length<message.best_length) { //Found a better path
                     for(i=0; i<N_OF_CS; i++) {
                         //Copy best path to message
