@@ -1,6 +1,7 @@
 #include "tsp_mpi_headers.h"
 
 int proc_n; //Set by command line option -np
+int jobs = 0;
 
 
 //Compile using options:
@@ -46,6 +47,7 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
             MPI_Send(message_ptr, sizeof(Message), MPI_BYTE, (*burst), WORK, MPI_COMM_WORLD);
             printf("job %d sent\n", *burst);
             (*burst)++;
+            jobs++;
         } else {
             //All slaves received jobs already. Time to colect results
             //before sending anything else.
@@ -67,6 +69,7 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
             
             //Send new job to this slave
             MPI_Send(message_ptr, sizeof(Message), MPI_BYTE, status.MPI_SOURCE, WORK, MPI_COMM_WORLD);
+            jobs++;
         }
     }
     
@@ -218,7 +221,7 @@ int main(int argc, char **argv) {
         }
         printf("\nLength: %.2f\n", message.best_length);
         printf("Time: %.2f seconds\n", t2-t1);
-        
+        printf("Jobs sent: %d\n", jobs);
         
 	} else {
 	//================slave=======================
