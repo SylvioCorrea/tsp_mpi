@@ -229,8 +229,12 @@ int main(int argc, char **argv) {
     
     if(my_rank == 0) {
     //================master======================
-        
         printf("Computing solution using %d processes\n", proc_n);
+        
+        double t1,t2;
+		t1 = MPI_Wtime();  // inicia a contagem do tempo
+		
+		printf("\nTempo de execucao: %f\n\n", t2-t1);
         
         //Computation starts defining city 0 as starting city
         message.path[0] = 0;
@@ -241,7 +245,7 @@ int main(int argc, char **argv) {
         
         //All work sent. Slaves are blocked on send with their last results.
         //Receive and send final message.
-        printf("All work sent. Wrapping up.\n");
+        printf("All work sent. Waiting final results.\n");
         int done = 0;
         Message results;
         while(done<proc_n-1) {
@@ -262,13 +266,14 @@ int main(int argc, char **argv) {
             done++;
         }
         
+        t2 = MPI_Wtime(); // termina a contagem do tempo
         //Print solution
         printf("Best path: ");
         for(i=0; i<N_OF_CS; i++) {
             printf("%d ", best_path[i]);
         }
         printf("\nLength: %.2f\n", message.best_length);
-            
+        printf("Time: %f", t2-t1);
         
         
 	} else {
@@ -313,6 +318,7 @@ int main(int argc, char **argv) {
 				MPI_Send(&message, sizeof(Message), MPI_BYTE, 0, RESULT, MPI_COMM_WORLD);
                 printf("[%d]: results sent.\n", my_rank);
 			} else { //No more work to do
+			    printf("[%d]finished\n", my_rank);
 			    break;
 			}
 		}
