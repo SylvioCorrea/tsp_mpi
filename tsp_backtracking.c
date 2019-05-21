@@ -238,6 +238,8 @@ int main(int argc, char **argv) {
 				}
 				best_length = message.best_length;
 				
+				print_int_arr(message.path);
+				
 				//Work on permutations
 				tsp_aux(message.path, N_OF_CS-GRAIN, available, distance_m,
 				        best_path, &best_length);
