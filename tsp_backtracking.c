@@ -248,8 +248,8 @@ int main(int argc, char **argv) {
 				
 				//Cities already on the path were not marked as available again
 				//during tsp_aux recursion. This must be corrected here.
-				for(i=0; i<N_OF_CS; i++) {
-				    available[i] = 1;
+				for(i=0; i<N_OF_CS-GRAIN; i++) {
+				    available[message.path[i]] = 1;
 				}
 				
                 if(best_length<message.best_length) { //Found a better path
