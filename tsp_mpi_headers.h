@@ -9,16 +9,14 @@
 
 //Defines the number of cities to be used in the problem
 #define N_OF_CS 14
-//Defines number of processes (should match -np command line argument).
-#define PROC_N 14
 
 //These define tags for mpi communication
 #define WORK	1
 #define RESULT	2
-#define DIE		3
+#define DIE	3
 
 //Defines the amount of cities a slave will be required to perform permutations on
-#define GRAIN	12
+#define GRAIN	11
 
 typedef struct {
     char *name;

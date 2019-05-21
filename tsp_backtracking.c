@@ -1,5 +1,7 @@
 #include "tsp_mpi_headers.h"
 
+int proc_n; //Set by command line option -np
+
 
 //Compile using options:
 //  -lm to link math library
@@ -40,7 +42,7 @@ void master_routine(Message *message_ptr, int available[], int best_path[],
         
     } else {
         //Time to forward the rest of the job for one of the slaves
-        if((*burst) < PROC_N) {
+        if((*burst) < proc_n) {
             //First burst of jobs is sent with no need for slave request.
             MPI_Send(message_ptr, sizeof(Message), MPI_BYTE, (*burst), WORK, MPI_COMM_WORLD);
             printf("job %d sent\n", *burst);
@@ -187,7 +189,6 @@ void tsp_aux(int path[], int path_size, int available[],
 int main(int argc, char **argv) {
     
     int my_rank;             //Process id
-    int proc_n;              //Number of processes (command line -np)
     Message message;         //Message buffer (see header file)
     
     //Tells which cities have yet to appear in a permutation.
@@ -238,11 +239,9 @@ int main(int argc, char **argv) {
         printf("Computing solution using %d processes\n", proc_n);
         
         double t1,t2;
-		t1 = MPI_Wtime();  // inicia a contagem do tempo
-		
-		printf("\nTempo de execucao: %f\n\n", t2-t1);
-        
-        //Computation starts defining city 0 as starting city
+	t1 = MPI_Wtime();  // inicia a contagem do tempo
+	
+	//Computation starts defining city 0 as starting city
         message.path[0] = 0;
         //The city is marked as unavailable.
 		available[0] = 0;
@@ -281,7 +280,7 @@ int main(int argc, char **argv) {
             printf("%d ", best_path[i]);
         }
         printf("\nLength: %.2f\n", message.best_length);
-        printf("Time: %.2f seconds", t2-t1);
+        printf("Time: %.2f seconds\n", t2-t1);
         
         
 	} else {
