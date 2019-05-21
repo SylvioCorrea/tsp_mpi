@@ -248,6 +248,7 @@ int main(int argc, char **argv) {
                     }
                     //Copy best found length to message
                     message.best_length = best_length;
+                    printf("[%d]: %.2f\n", my_rank, message.best_length);
                 } //Else no relevant results to report, will send back the
                   //same message it received.
 				
