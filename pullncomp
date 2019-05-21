@@ -1,3 +1,0 @@
-#Mini script to pull from git and comp right after.
-git pull
-ladcomp -env mpicc *.c -lm -o tsp
