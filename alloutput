@@ -1,0 +1,31 @@
+
+Computing solution using 14 processes
+Grain: 12
+Best path: 0 3 9 6 12 5 11 7 4 2 1 10 13 8 
+Length: 3576.37
+Time: 141.28 seconds
+Jobs sent: 13
+Computing solution using 40 processes
+Grain: 11
+Best path: 0 3 9 6 12 5 11 7 4 2 1 10 13 8 
+Length: 3576.37
+Time: 66.76 seconds
+Jobs sent: 156
+Computing solution using 48 processes
+Grain: 10
+Best path: 0 3 9 6 12 5 11 7 4 2 1 10 13 8 
+Length: 3576.37
+Time: 56.86 seconds
+Jobs sent: 1716
+Computing solution using 64 processes
+Grain: 10
+Best path: 0 3 9 6 12 5 11 7 4 2 1 10 13 8 
+Length: 3576.37
+Time: 42.56 seconds
+Jobs sent: 1716
+Computing solution using 128 processes
+Grain: 10
+Best path: 0 3 9 6 12 5 11 7 4 2 1 10 13 8 
+Length: 3576.37
+Time: 21.57 seconds
+Jobs sent: 1716

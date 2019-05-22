@@ -1,0 +1,4 @@
+touch alloutput
+ladrun -np 14 tsp_12g >> alloutput
+ladrun -np 40 tsp_11g >> alloutput
+ladrun -np 48 tsp_10g >> alloutput
