@@ -177,6 +177,7 @@ int main(int argc, char **argv) {
     if(my_rank == 0) {
     //================master======================
         printf("Computing solution using %d processes\n", proc_n);
+        printf("Grain: %d\n", GRAIN);
         
         double t1,t2;
 	t1 = MPI_Wtime();  // inicia a contagem do tempo
@@ -190,7 +191,7 @@ int main(int argc, char **argv) {
         
         //All work sent. Slaves are blocked on send with their last results.
         //Receive and send final message.
-        printf("All work sent. Waiting final results.\n");
+        //printf("All work sent. Waiting final results.\n");
         int done = 0;
         Message results;
         while(done<proc_n-1) {
@@ -271,7 +272,7 @@ int main(int argc, char **argv) {
 				         0, RESULT, MPI_COMM_WORLD);
                 //printf("[%d]: results sent.\n", my_rank);
 			} else { //No more work to do
-			    printf("[%d]finished\n", my_rank);
+			    //printf("[%d]finished\n", my_rank);
 			    break;
 			}
 		}

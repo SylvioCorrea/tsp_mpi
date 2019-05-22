@@ -16,7 +16,7 @@
 #define DIE	3
 
 //Defines the amount of cities a slave will be required to perform permutations on
-#define GRAIN	10
+#define GRAIN	12
 
 typedef struct {
     char *name;
